@@ -1,0 +1,51 @@
+{
+  "name": "@corecount/dbprisma",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/client.d.ts",
+      "default": "./src/client.ts"
+    },
+    "./zod": {
+      "types": "./dist/generated/index.d.ts",
+      "default": "./src/generated/index.ts"
+    },
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "default": "./src/schemas.ts"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "default": "./src/utils.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "prisma generate && tsc",
+    "dev": "prisma generate && tsc --watch",
+    "clean": "rm -rf .turbo node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "with-env": "dotenv -e ../../.env --"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "@t3-oss/env-core": "^0.10.1",
+    "prisma": "^5.19.1",
+    "zod": "catalog:",
+    "zod-prisma-types": "^3.1.8"
+  },
+  "devDependencies": {
+    "@corecount/eslint-config": "workspace:*",
+    "@corecount/prettier-config": "workspace:*",
+    "@corecount/tsconfig": "workspace:*",
+    "dotenv-cli": "^7.4.2",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@corecount/prettier-config"
+}

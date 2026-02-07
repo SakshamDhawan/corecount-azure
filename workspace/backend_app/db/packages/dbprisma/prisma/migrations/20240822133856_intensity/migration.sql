@@ -1,0 +1,2 @@
+-- CreateEnum
+CREATE TYPE "Intensity" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED');

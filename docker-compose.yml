@@ -1,0 +1,67 @@
+networks:
+  default:
+    name: traefik
+    external: true
+
+
+services:
+  backend:
+    image: 723178373366.dkr.ecr.eu-central-1.amazonaws.com/corecount/backend:develop
+    restart: always
+    ports:
+      - 1234:3003
+    volumes:
+      - /opt/corecount/workspace/prj-001-uppitt-backend:/app
+      - ./uploads:/app/uploads
+    environment:
+      - DATABASE_URL=postgres://root:root@postgresql:5432/corecount
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend-3v3.entrypoints=web,websecure
+      - traefik.http.routers.backend-3v3.tls=true
+      - traefik.http.routers.backend-3v3.tls.certResolver=letsencrypt
+      - traefik.http.routers.backend-3v3.rule=Host(`api.corecount.3v3labs.com`)
+      # OLD app – thebarngames
+      - traefik.http.routers.backend-barngames.entrypoints=web,websecure
+      - traefik.http.routers.backend-barngames.tls=true
+      - traefik.http.routers.backend-barngames.tls.certResolver=letsencrypt
+      - traefik.http.routers.backend-barngames.rule=Host(`api.corecount.thebarngames.nl`)
+
+  dashboard:
+    image: 723178373366.dkr.ecr.eu-central-1.amazonaws.com/corecount/dashboard:develop
+    restart: always
+    ports:
+      - 3142:80
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashboard-3v3.entrypoints=web,websecure
+      - traefik.http.routers.dashboard-3v3.tls=true
+      - traefik.http.routers.dashboard-3v3.tls.certResolver=letsencrypt
+      - traefik.http.routers.dashboard-3v3.rule=Host(`corecount.3v3labs.com`)
+      # OLD app – thebarngames
+      - traefik.http.routers.dashboard-barngames.entrypoints=web,websecure
+      - traefik.http.routers.dashboard-barngames.tls=true
+      - traefik.http.routers.dashboard-barngames.tls.certResolver=letsencrypt
+      - traefik.http.routers.dashboard-barngames.rule=Host(`corecount.thebarngames.nl`)
+
+  postgresql:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: root # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: corecount # The PostgreSQL default database (automatically created at first launch)
+    volumes:
+      - ./corecount_db:/var/lib/postgresql
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    ports:
+    - 80:80
+    - 443:443
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./traefik/:/etc/traefik/
+    restart: always
