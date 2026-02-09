@@ -201,6 +201,9 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Deployment build artifacts (synced from build output, not source-controlled)
+workspace/backend_app/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
