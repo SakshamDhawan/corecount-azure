@@ -15,6 +15,7 @@ services:
       - ./uploads:/app/uploads
     environment:
       - DATABASE_URL=postgres://root:root@postgresql:5432/corecount
+      - RESET_CODE_PEPPER=${RESET_CODE_PEPPER:?required}
     labels:
       - traefik.enable=true
       - traefik.http.routers.backend-3v3.entrypoints=web,websecure
@@ -22,13 +23,9 @@ services:
       - traefik.http.routers.backend-3v3.tls.certResolver=letsencrypt
       - traefik.http.routers.backend-3v3.rule=Host(`api.corecount.3v3labs.com`)
       # OLD app – thebarngames
-      - traefik.http.routers.backend-barngames.entrypoints=web,websecure
-      - traefik.http.routers.backend-barngames.tls=true
-      - traefik.http.routers.backend-barngames.tls.certResolver=letsencrypt
-      - traefik.http.routers.backend-barngames.rule=Host(`api.corecount.thebarngames.nl`)
 
   dashboard:
-    image: 723178373366.dkr.ecr.eu-central-1.amazonaws.com/corecount/dashboard:develop
+    image: corecount/dashboard:pr7d
     restart: always
     ports:
       - 3142:80
@@ -39,13 +36,9 @@ services:
       - traefik.http.routers.dashboard-3v3.tls.certResolver=letsencrypt
       - traefik.http.routers.dashboard-3v3.rule=Host(`corecount.3v3labs.com`)
       # OLD app – thebarngames
-      - traefik.http.routers.dashboard-barngames.entrypoints=web,websecure
-      - traefik.http.routers.dashboard-barngames.tls=true
-      - traefik.http.routers.dashboard-barngames.tls.certResolver=letsencrypt
-      - traefik.http.routers.dashboard-barngames.rule=Host(`corecount.thebarngames.nl`)
 
   postgresql:
-    image: postgres
+    image: postgres:17.2
     restart: always
     ports:
       - "5432:5432"
