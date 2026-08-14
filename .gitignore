@@ -208,3 +208,26 @@ workspace/backend_app/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Production runtime state (NEVER commit, and must survive `git clean`) ---
+# These live next to docker-compose.yml on the VM. Leaving them untracked AND
+# unignored means a `git clean -fd` in the deployment directory would delete the
+# Postgres data dir, every user upload, and the Let's Encrypt certificate store.
+corecount_db/
+uploads/
+traefik/acme.json
+traefik/acme.json.bak*
+docker-compose.yml.bak*
+.env
+
+# Database dumps and backups (health data - must never reach git)
+*.sql
+*.sql.gz
+*.dump
+*.pgc
+*.gpg
+backups/
+
+# Local clone of the contractor's app repo (gitchilliuk/3v3) - not part of this repo
+workspace/3v3/
+.DS_Store

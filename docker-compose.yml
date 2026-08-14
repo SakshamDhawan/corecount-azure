@@ -15,6 +15,7 @@ services:
       - ./uploads:/app/uploads
     environment:
       - DATABASE_URL=postgres://root:root@postgresql:5432/corecount
+      - RESET_CODE_PEPPER=${RESET_CODE_PEPPER:?required}
     labels:
       - traefik.enable=true
       - traefik.http.routers.backend-3v3.entrypoints=web,websecure
@@ -22,13 +23,9 @@ services:
       - traefik.http.routers.backend-3v3.tls.certResolver=letsencrypt
       - traefik.http.routers.backend-3v3.rule=Host(`api.corecount.3v3labs.com`)
       # OLD app – thebarngames
-      - traefik.http.routers.backend-barngames.entrypoints=web,websecure
-      - traefik.http.routers.backend-barngames.tls=true
-      - traefik.http.routers.backend-barngames.tls.certResolver=letsencrypt
-      - traefik.http.routers.backend-barngames.rule=Host(`api.corecount.thebarngames.nl`)
 
   dashboard:
-    image: 723178373366.dkr.ecr.eu-central-1.amazonaws.com/corecount/dashboard:develop
+    image: corecount/dashboard:pr7d
     restart: always
     ports:
       - 3142:80
@@ -39,22 +36,25 @@ services:
       - traefik.http.routers.dashboard-3v3.tls.certResolver=letsencrypt
       - traefik.http.routers.dashboard-3v3.rule=Host(`corecount.3v3labs.com`)
       # OLD app – thebarngames
-      - traefik.http.routers.dashboard-barngames.entrypoints=web,websecure
-      - traefik.http.routers.dashboard-barngames.tls=true
-      - traefik.http.routers.dashboard-barngames.tls.certResolver=letsencrypt
-      - traefik.http.routers.dashboard-barngames.rule=Host(`corecount.thebarngames.nl`)
 
   postgresql:
-    image: postgres
+    image: postgres:17.2
     restart: always
     ports:
-      - "5432:5432"
+      # Loopback only: the backend reaches Postgres over the docker network as
+      # postgresql:5432, so nothing needs this published on all interfaces.
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: root # The PostgreSQL user (useful to connect to the database)
       POSTGRES_PASSWORD: root # The PostgreSQL password (useful to connect to the database)
       POSTGRES_DB: corecount # The PostgreSQL default database (automatically created at first launch)
+      PGDATA: /var/lib/postgresql/data # explicit: never inherit a relocated default
     volumes:
-      - ./corecount_db:/var/lib/postgresql
+      # Was ./corecount_db:/var/lib/postgresql, the PARENT of PGDATA. The image
+      # declares VOLUME /var/lib/postgresql/data (deeper), which shadowed that bind
+      # mount: real data lives in an ANONYMOUS volume and ./corecount_db is empty.
+      # Anonymous volumes do not survive `compose down` + `up`.
+      - pgdata:/var/lib/postgresql/data
   traefik:
     image: traefik:latest
     container_name: traefik
@@ -65,3 +65,13 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - ./traefik/:/etc/traefik/
     restart: always
+
+# `external: true` means Compose can never create, recreate or DELETE this volume,
+# so `docker compose down -v` cannot destroy production data.
+#
+# PREREQUISITE before the first `up` on any host:
+#     docker volume create corecount_pgdata
+volumes:
+  pgdata:
+    name: corecount_pgdata
+    external: true
