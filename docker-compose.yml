@@ -16,6 +16,19 @@ services:
     environment:
       - DATABASE_URL=postgres://root:root@postgresql:5432/corecount
       - RESET_CODE_PEPPER=${RESET_CODE_PEPPER:?required}
+      # Outbound mail (password-reset codes). lib/mailer.ts no-ops with a warning
+      # unless BOTH SMTP_HOST and MAIL_FROM are set, so these must land together
+      # with a working SMTP_PASS. Half-configured is worse than unconfigured: the
+      # mailer would consider itself live and fail authentication on every reset.
+      # uppitt.co.uk is on Namecheap Private Email; SPF and DKIM are already published.
+      - SMTP_HOST=mail.privateemail.com
+      - SMTP_PORT=587
+      - SMTP_USER=saksham.dhawan@uppitt.co.uk
+      - MAIL_FROM=saksham.dhawan@uppitt.co.uk
+      # Mailbox password. Lives in /opt/corecount/.env (chmod 600), never committed.
+      # The :? form makes compose refuse to start rather than silently send with
+      # an empty password.
+      - SMTP_PASS=${SMTP_PASS:?set SMTP_PASS in /opt/corecount/.env}
     labels:
       - traefik.enable=true
       - traefik.http.routers.backend-3v3.entrypoints=web,websecure
